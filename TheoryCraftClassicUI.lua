@@ -12,6 +12,7 @@ local function findpattern(text, pattern, start)
 	end
 end
 
+<<<<<<< HEAD
 TheoryCraft_SetUpButton = function (parentname, type, specialid)
 	
 	oldbutton = getglobal(parentname)
@@ -31,6 +32,8 @@ TheoryCraft_SetUpButton = function (parentname, type, specialid)
 	newbutton:Show()
 end
 
+=======
+>>>>>>> f729fd600fb6d0d83140aabe421c604a99ee1f06
 local function round(arg1, decplaces)
 	if (decplaces == nil) then decplaces = 0 end
 	if arg1 == nil then arg1 = 0 end
