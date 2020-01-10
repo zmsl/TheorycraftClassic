@@ -502,33 +502,29 @@ function TheoryCraft_OnLoad(self)
 		end
 		i = i + 1
 	end
-
+	
 	Print(TheoryCraft_Locale.LoadText)
 end
 
 --- OnShow ---
 
 function TheoryCraft_OnShow()
-    	TheoryCraft_AddTooltipInfo(GameTooltip)
+   	TheoryCraft_AddTooltipInfo(GameTooltip)
 	--if (TheoryCraft_OnShow_Save) then
 	--   	TheoryCraft_OnShow_Save()
 	--end
 end
 
-	if BActionButton and type(BActionButton) == "table" then
-		TheoryCraft_Data["oldBongo"] = BActionButton.Create
-		function TheoryCraft_BActionButtonCreate(index, bar)
-			local tmp = TheoryCraft_Data["oldBongo"](index, bar)
-			TheoryCraft_SetUpButton(tmp:GetName(), "Normal")
-			return tmp
-		end
-		BActionButton.Create = TheoryCraft_BActionButtonCreate
-	end
-
 function TheoryCraft_OnEvent(self, event, arg1)
+	--print(event)
+	--if not TheoryCraft_Data.TalentsHaveBeenRead then
+	--	return
+	--end
+
 	local UIMem = gcinfo()
 	if event == "VARIABLES_LOADED" then
-		if TheoryCraft_AddButtonText then TheoryCraft_AddButtonText() end
+		TheoryCraft_AddButtonText()
+
 		TheoryCraft_Mitigation = nil
 		TheoryCraft_Data["SetItemRef"] = SetItemRef
 		SetItemRef = TheoryCraft_SetItemRef
@@ -548,13 +544,6 @@ function TheoryCraft_OnEvent(self, event, arg1)
 			end
 		end
 
-		-- Hooking Nurfed Action Bars onUpdate event for button text purposes
-		TheoryCraft_Data["oldGBMSB"] = GB_Spellbook_UpdatePage
-		GB_Spellbook_UpdatePage = TheoryCraft_GB_Spellbook_UpdatePage
-
-		TheoryCraft_Data["oldNurfed"] = Nurfed_ActionButton_OnUpdate
-		Nurfed_ActionButton_OnUpdate = TheoryCraft_Nurfed_ActionButton_OnUpdate
-
 		if TheoryCraft_OnShow_Save ~= nil then
 			return
 		end
@@ -562,6 +551,7 @@ function TheoryCraft_OnEvent(self, event, arg1)
 		--hooking GameTooltip's OnShow
 		TheoryCraft_OnShow_Save = GameTooltip:GetScript("OnShow")
 		GameTooltip:SetScript( "OnShow", TheoryCraft_OnShow )
+
 		if TheoryCraft_Mitigation == nil then
 			TheoryCraft_Mitigation = {}
 		end
@@ -585,9 +575,6 @@ function TheoryCraft_OnEvent(self, event, arg1)
 			Print("TheoryCraft is currently switched off, type in '/tc on' to enabled")
 		end
 	elseif event == "PLAYER_LOGIN" then
-		self:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
-		self:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
-		self:RegisterEvent("SPELLS_CHANGED")
 		self:RegisterEvent("UNIT_AURA")
 		self:RegisterEvent("UNIT_INVENTORY_CHANGED")
 		self:RegisterEvent("PLAYER_TARGET_CHANGED")
@@ -598,10 +585,8 @@ function TheoryCraft_OnEvent(self, event, arg1)
 		self:RegisterEvent("UNIT_POWER_UPDATE")
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
+		self:RegisterEvent("SPELL_UPDATE_ICON")
 	elseif event == "PLAYER_LEAVING_WORLD" then
-		self:UnregisterEvent("ACTIONBAR_PAGE_CHANGED")
-		self:UnregisterEvent("ACTIONBAR_SLOT_CHANGED")
-		self:UnregisterEvent("SPELLS_CHANGED")
 		self:UnregisterEvent("UNIT_AURA")
 		self:UnregisterEvent("UNIT_INVENTORY_CHANGED")
 		self:UnregisterEvent("PLAYER_TARGET_CHANGED")
@@ -612,24 +597,24 @@ function TheoryCraft_OnEvent(self, event, arg1)
 		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:UnregisterEvent("PLAYER_REGEN_ENABLED")
 	elseif event == "PLAYER_ENTERING_WORLD" then
-		TheoryCraft_UpdateTalents(true)
-		TheoryCraft_UpdateGear("player", true)
-		TheoryCraft_UpdateBuffs("player", true)
-		TheoryCraft_UpdateBuffs("target", true)
-		TheoryCraft_LoadStats()
-		TheoryCraft_GenerateAll()
-		self:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
-		self:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
-		self:RegisterEvent("SPELLS_CHANGED")
 		self:RegisterEvent("UNIT_AURA")
 		self:RegisterEvent("UNIT_INVENTORY_CHANGED")
 		self:RegisterEvent("PLAYER_TARGET_CHANGED")
 		self:RegisterEvent("UNIT_MANA")
 		self:RegisterEvent("CHARACTER_POINTS_CHANGED")
 		self:RegisterEvent("PLAYER_LEAVING_WORLD")
+		self:RegisterEvent("PLAYER_ENTERING_WORLD")
 		self:RegisterEvent("UNIT_POWER_UPDATE")
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
+		self:RegisterEvent("SPELL_UPDATE_ICON")
+		TheoryCraft_UpdateTalents(true)
+		TheoryCraft_UpdateGear("player", true)
+		TheoryCraft_UpdateBuffs("player", true)
+		TheoryCraft_UpdateBuffs("target", true)
+		TheoryCraft_LoadStats()
+		TheoryCraft_GenerateAll()
+		TheoryCraft_UpdateAllButtonText()
 	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
 		if TheoryCraft_ParseCombat then
 			TheoryCraft_ParseCombat(self, event)
@@ -652,11 +637,6 @@ function TheoryCraft_OnEvent(self, event, arg1)
 				TheoryCraft_TooltipData[olddesc] = nil
 			end
 		end
-		TheoryCraft_DeleteTable(TheoryCraft_UpdatedButtons)
-	elseif event == "ACTIONBAR_PAGE_CHANGED" then
-		TheoryCraft_DeleteTable(TheoryCraft_UpdatedButtons)
-	elseif event == "ACTIONBAR_SLOT_CHANGED" then
-		TheoryCraft_DeleteTable(TheoryCraft_UpdatedButtons)
 	elseif event == "UNIT_AURA" then
 		TheoryCraft_UpdateBuffs(arg1)
 	elseif event == "CHARACTER_POINTS_CHANGED" then
@@ -664,8 +644,9 @@ function TheoryCraft_OnEvent(self, event, arg1)
 	elseif event == "PLAYER_TARGET_CHANGED" then
 		TheoryCraft_UpdateTarget()
 		TheoryCraft_UpdateBuffs("target")
+		TheoryCraft_UpdateAllButtonText()
 	elseif event == "UNIT_POWER_UPDATE" then
-		TheoryCraft_DeleteTable(TheoryCraft_UpdatedButtons)
+
 	elseif (event == "UNIT_MANA") and (arg1 == "player") then
 		if UnitClass("player") == "DRUID" then
 			local _, _, catform = GetShapeshiftFormInfo(3)
@@ -786,7 +767,13 @@ end
 
 function TheoryCraft_Command(cmd)
 	if (cmd == "") then
-
+		if TheoryCraft_Data["firstrun"] == nil then
+			if TheoryCraft_NotStripped then
+				PanelTemplates_SetNumTabs(TheoryCraft, 3)
+				TheoryCraft.selectedTab=1
+				PanelTemplates_UpdateTabs(TheoryCraft)
+			end
+		end
 		TheoryCraft_Data["firstrun"] = 1
 
 		TheoryCraft_SetCheckBox("embedstyle1")

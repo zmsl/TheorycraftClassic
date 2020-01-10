@@ -12,8 +12,12 @@ end
 local function TheoryCraft_AddAllTalents(data, ignoreforce)
 	local i = 1
 	local forcedrank = 0
+	local nameTalent, icon, iconx, icony, currank, maxRank = GetTalentInfo(1, 1)
 
+	if nameTalent == nil then return end
+	--print(nameTalent)
 
+--	print("TALENT TIME")
 	data["strmultiplier"] = 1
 	data["agimultiplier"] = 1
 	data["stammultiplier"] = 1
@@ -38,10 +42,6 @@ local function TheoryCraft_AddAllTalents(data, ignoreforce)
 	data["spiritmultiplierreal"] = data["spiritmultiplier"]
 	data["manamultiplierreal"] = data["manamultiplier"]
 	data["healthmultiplierreal"] = data["healthmultiplier"]
-
-	local nameTalent, icon, iconx, icony, currank, maxRank = GetTalentInfo(1, 1)
-	if nameTalent == nil then return end
-	TheoryCraft_Data.TalentsHaveBeenRead = true
 
 	local _, catform, bearform
 	if class == "DRUID" then
@@ -148,6 +148,7 @@ local function TheoryCraft_AddAllTalents(data, ignoreforce)
 		end
 		i = i + 1
 	end
+	TheoryCraft_Data.TalentsHaveBeenRead = true
 end
 
 function TheoryCraft_UpdateTalents(dontgen)

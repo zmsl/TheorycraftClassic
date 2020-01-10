@@ -405,8 +405,10 @@ local function GetCritChance(critreport)
 end
 
 function TheoryCraft_LoadStats(talents)
+	
 	if talents == nil then talents = TheoryCraft_Data.Talents end
-	TheoryCraft_DeleteTable(TheoryCraft_Data.Stats)
+	if talents == nil then return end
+	-- TheoryCraft_DeleteTable(TheoryCraft_Data.Stats)
 	local remove
 	TheoryCraft_Data.Stats["meleecritchance"], remove = GetCritChance()
 	TheoryCraft_Data.Stats["Rangedhastebonus"] = UnitRangedDamage("player")/TheoryCraft_GetRangedSpeed()
@@ -424,6 +426,7 @@ function TheoryCraft_LoadStats(talents)
 	_, tmp = UnitStat("player", 4)
 	TheoryCraft_Data.Stats["intellect"] = tmp
 	_, tmp = UnitStat("player", 5)
+	-- print(tmp)
 	TheoryCraft_Data.Stats["spirit"] = tmp
 	TheoryCraft_Data.Stats["agipercrit"] = agipercrit()
 
@@ -456,7 +459,6 @@ function TheoryCraft_LoadStats(talents)
 	TheoryCraft_Data.Stats["attackpower"] = base+pos+neg-TheoryCraft_Data.Stats["strengthapmelee"]*TheoryCraft_Data.Stats["strength"]-TheoryCraft_Data.Stats["agilityapmelee"]*TheoryCraft_Data.Stats["agility"]+(talents["AttackPowerTalents"] or 0)
 	base, pos, neg = UnitRangedAttackPower("player")
 	TheoryCraft_Data.Stats["rangedattackpower"] = (TheoryCraft_Data.TargetBuffs["huntersmark"] or 0)+base+pos+neg-TheoryCraft_Data.Stats["agilityapranged"]*TheoryCraft_Data.Stats["agility"]
-
 	TheoryCraft_Data.Stats["totalmana"] = UnitPowerMax("player")/talents["manamultiplierreal"]
 	TheoryCraft_Data.Stats["totalhealth"] = UnitHealthMax("player")/talents["healthmultiplierreal"]
 
@@ -575,6 +577,7 @@ function TheoryCraft_LoadStats(talents)
 
 	TheoryCraft_Data.Stats["All"] = math.floor(TheoryCraft_Data.Stats["spirit"]*(talents["Allspiritual"] or 0))
 	TheoryCraft_Data.Stats["BlockValue"] = TheoryCraft_GetStat("BlockValueReport")+(TheoryCraft_Data.Stats["strength"]/20) - 1
+	-- print("LOAD STATS")
 end
 
 local function AddProcs(casttime, returndata, spelldata)
@@ -862,7 +865,7 @@ local function GenerateTooltip(frame, returndata, spelldata, spellrank)
 	if (returndata["manamultiplier"]) then
 		returndata["manacost"] = returndata["manacost"]*returndata["manamultiplier"]
 	end
-	returndata["manacost"] = returndata["manacost"]-TheoryCraft_Data.Stats["icregen"]*returndata["regencasttime"]
+	returndata["manacost"] = returndata["manacost"]-(TheoryCraft_Data.Stats["icregen"] or 0)*returndata["regencasttime"]
 	returndata["manacost"] = returndata["manacost"]*returndata["manacostmod"]
 
 	if (returndata["crithealchance"]) and (returndata["crithealchance"] > 100) then
@@ -1770,23 +1773,48 @@ local function UpdateTarget(data)
 	return data
 end
 
+
+
+function TheoryCraft_GetSpellDataByAction(frame)
+	if frame == nil then return nil end
+	local action = frame.action
+	local type, id = GetActionInfo(action);
+
+	if (type ~= "spell") then return nil end
+
+	local desc = GetSpellDescription(id);
+
+	if TheoryCraft_TooltipData[desc] and TheoryCraft_TooltipData[desc].spellname then
+		return UpdateTarget(TheoryCraft_TooltipData[desc]) or TheoryCraft_TooltipData[desc]
+	end
+	
+	TheoryCraft_GenerateTooltip(TCTooltip, nil, nil, nil, true, nil, force)
+	return UpdateTarget(TheoryCraft_TooltipData[desc]) or TheoryCraft_TooltipData[desc]
+end
+
 function TheoryCraft_GetSpellDataByFrame(frame, force)
 	if frame == nil then return nil end
+	
 	if frame:NumLines() == 0 then return nil end
-	if getglobal(frame:GetName().."TextLeft"..frame:NumLines()) == nil then return nil end
+	local name = frame:GetName().."TextLeft"..frame:NumLines()
+	if getglobal(name) == nil then return nil end
 	local desc = getglobal(frame:GetName().."TextLeft"..frame:NumLines()):GetText()
 	if (frame:NumLines() == 1) and (desc ~= "Attack") then
 		local pos = strfind(desc, "%(%d+%)")
 		if not pos then return nil end
+		print(string.sub(desc, 1, pos-1))
 		local data = TheoryCraft_GetSpellDataByName(string.sub(desc, 1, pos-1), tonumber(string.sub(desc, pos+1, string.len(desc)-1)), force, true)
 		if data == nil then return nil end
 		if data.spellnumber == nil then return nil end
+
 		frame:SetSpellBookItem(data.spellnumber,BOOKTYPE_SPELL)
 		return data
 	end
+	
 	if TheoryCraft_TooltipData[desc] and TheoryCraft_TooltipData[desc].spellname then
 		return UpdateTarget(TheoryCraft_TooltipData[desc]) or TheoryCraft_TooltipData[desc]
 	end
+	
 	TheoryCraft_GenerateTooltip(frame, nil, nil, nil, true, nil, force)
 	return UpdateTarget(TheoryCraft_TooltipData[desc]) or TheoryCraft_TooltipData[desc]
 end
