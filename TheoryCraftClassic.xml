@@ -1057,7 +1057,6 @@
 					<Scripts>
 						<OnLoad>
 							self.textChanged = TheoryCraft_GenBoxEditChange
-							TheoryCraft_UpdateButtonTextPos(self)
 						</OnLoad>
 					</Scripts>
 				</ScrollFrame>
