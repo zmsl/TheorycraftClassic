@@ -1012,7 +1012,7 @@ function TheoryCraft_OutfitChange(self)
 		local i, i2 = 1
 		local first = true
 		while (true) do
-			spellname, spellrank = GetSpellName(i,BOOKTYPE_SPELL)
+			spellname, spellrank = GetSpellBookItemName(i,BOOKTYPE_SPELL)
 			if spellname == nil then break end
 			spellrank = tonumber(findpattern(spellrank, "%d+"))
 			if spellrank == nil then spellrank = 0 end

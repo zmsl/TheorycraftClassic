@@ -420,18 +420,19 @@ function TheoryCraft_getMinMax(spelldata, returndata, frame)
 		returndata["description"] = description
 	elseif (spelldata.holynova) then
 		local minDamage = findpattern(description, "%d+"..to.."%d+")
+		
 		local maxDamage = findpattern(minDamage, to.."%d+")
-		minDamage = findpattern(minDamage, "%d+")
-		maxDamage = findpattern(maxDamage, "%d+")
+		minDamage = tonumber(findpattern(minDamage, "%d+")) or 0
+		maxDamage = tonumber(findpattern(maxDamage, "%d+")) or 0
 		local lengthofdamagetext = string.len(minDamage..to..maxDamage);
 		minDamage = minDamage*baseincrease + plusdam
 		maxDamage = maxDamage*baseincrease + plusdam
-
-		local minHeal = string.sub(description, string.find(description, "%d+"..to.."%d+")+lengthofdamagetext)
-		minHeal = findpattern(minHeal, "%d+"..to.."%d+")
-		local maxHeal = findpattern(minHeal, to.."%d+")
-		minHeal = findpattern(minHeal, "%d+")
-		maxHeal = findpattern(maxHeal, "%d+")
+		
+		local minHeal = (tonumber(string.sub(description, string.find(description, "%d+"..to.."%d+"))) or 0)+lengthofdamagetext
+		minHeal = tonumber(findpattern(minHeal, "%d+"..to.."%d+")) or 0
+		local maxHeal = tonumber(findpattern(minHeal, to.."%d+")) or 0
+		minHeal = tonumber(findpattern(minHeal, "%d+")) or 0
+		maxHeal = tonumber(findpattern(maxHeal, "%d+")) or 0
 		local basehealincrease = TheoryCraft_GetStat("Allbaseincrease")+(TheoryCraft_GetStat("Holybaseincrease") or 0)+(TheoryCraft_GetStat("Healingbaseincrease") or 0)
 		local plusheal = (TheoryCraft_GetStat("All") + TheoryCraft_GetStat("Holy") + TheoryCraft_GetStat("Healing"))*spelldata.percentheal
 
@@ -445,8 +446,8 @@ function TheoryCraft_getMinMax(spelldata, returndata, frame)
 		local descriptionbegin = string.sub(description, 0, string.find(description, "%d+"..to.."%d+")+string.len(minDamage..to..maxDamage))
 		local descriptionrest = string.sub(description, string.find(description, "%d+"..to.."%d+")+string.len(minDamage..to..maxDamage)+1)
 		descriptionrest=string.sub(descriptionrest, 0, string.find(descriptionrest, "%d+"..to.."%d+", 0)-1)..
-				round(minHeal)..to..round(maxHeal)..
-				string.sub(descriptionrest, string.find(descriptionrest, "%d+"..to.."%d+", 0)+lengthofhealtext)
+				round(minHeal)..to..round(maxHeal)
+
 		description = descriptionbegin..descriptionrest
 		returndata["description"] = description
 		returndata["critdmgchance"] = returndata["critchance"]

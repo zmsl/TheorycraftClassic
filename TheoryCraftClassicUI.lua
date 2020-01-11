@@ -277,34 +277,148 @@ function TheoryCraft_UpdateOutfitTab()
 	UpdateCustomOutfit()
 end
 
-function TheoryCraft_Combo1Click()
+function TheoryCraft_Combo1Click(self)
 	local optionID = self:GetID()
 	UIDropDownMenu_SetSelectedID(TheoryCrafttryfirst, optionID)
 	TheoryCraft_Settings["tryfirst"] = self.value
 	TheoryCraft_DeleteTable(TheoryCraft_UpdatedButtons)
 end
 
-function TheoryCraft_Combo2Click()
+function TheoryCraft_Combo2Click(self)
 	local optionID = self:GetID()
 	UIDropDownMenu_SetSelectedID(TheoryCrafttrysecond, optionID)
 	TheoryCraft_Settings["trysecond"] = self.value
 	TheoryCraft_DeleteTable(TheoryCraft_UpdatedButtons)
 end
 
-function TheoryCraft_Combo3Click()
+function TheoryCraft_Combo3Click(self)
 	local optionID = self:GetID()
 	UIDropDownMenu_SetSelectedID(TheoryCrafttryfirstsfg, optionID)
 	TheoryCraft_Settings["tryfirstsfg"] = self.value
 	TheoryCraft_DeleteTable(TheoryCraft_UpdatedButtons)
 end
 
-function TheoryCraft_Combo4Click()
+function TheoryCraft_Combo4Click(self)
 	local optionID = self:GetID()
 	UIDropDownMenu_SetSelectedID(TheoryCrafttrysecondsfg, optionID)
 	TheoryCraft_Settings["trysecondsfg"] = self.value
 	TheoryCraft_DeleteTable(TheoryCraft_UpdatedButtons)
 end
 local info = {}
+
+local function AddButton(i, text, value, func, remaining)
+	TheoryCraft_DeleteTable(info)
+	info.remaining = true
+	info.text = text
+	info.value = value
+	info.func = func
+	UIDropDownMenu_AddButton(info)
+	if (func == TheoryCraft_Combo1Click) and (TheoryCraft_Settings["tryfirst"] == value) then
+		UIDropDownMenu_SetSelectedID(TheoryCrafttryfirst, i)
+	end
+	if (func == TheoryCraft_Combo2Click) and (TheoryCraft_Settings["trysecond"] == value) then
+		UIDropDownMenu_SetSelectedID(TheoryCrafttrysecond, i)
+	end
+	if (func == TheoryCraft_Combo3Click) and (TheoryCraft_Settings["tryfirstsfg"] == value) then
+		UIDropDownMenu_SetSelectedID(TheoryCrafttryfirstsfg, i)
+	end
+	if (func == TheoryCraft_Combo4Click) and (TheoryCraft_Settings["trysecondsfg"] == value) then
+		UIDropDownMenu_SetSelectedID(TheoryCrafttrysecondsfg, i)
+	end
+	if (func == TheoryCraft_OutfitClick) and ((TheoryCraft_Data["outfit"] == value) or ((TheoryCraft_Data["outfit"] == nil) and (value == 1))) then
+		UIDropDownMenu_SetSelectedID(TheoryCraftoutfit, i)
+	end
+	return i + 1
+end
+
+function TheoryCraft_InitDropDown(this)
+	local a
+	local i = 1
+	if string.find(this:GetName(), "TheoryCraftoutfit") then
+		for k, v in pairs(TheoryCraft_Outfits) do
+			if ((v.class == nil) or (class == v.class)) then
+				i = AddButton(i, (v.shortname or v.name), k, TheoryCraft_OutfitClick)
+			end
+		end
+		return
+	end
+	if string.find(this:GetName(), "sfg") then
+		if string.find(this:GetName(), "TheoryCrafttryfirst") then
+			a = TheoryCraft_Combo3Click
+		else
+			a = TheoryCraft_Combo4Click
+		end
+		i = AddButton(i, "0.01", 2, a)
+		i = AddButton(i, "0.1", 1, a)
+		i = AddButton(i, "1", 0, a)
+		i = AddButton(i, "10", -1, a)
+		i = AddButton(i, "100", -2, a)
+		i = AddButton(i, "1000", -3, a)
+		return
+	end
+	if string.find(this:GetName(), "TheoryCrafttryfirst") then
+		a = TheoryCraft_Combo1Click
+	else
+		a = TheoryCraft_Combo2Click
+	end
+	i = AddButton(i, "Do Nothing", "donothing", a)
+	i = AddButton(i, "Min Damage", "mindamage", a)
+	i = AddButton(i, "Max Damage", "maxdamage", a)
+	i = AddButton(i, "Average Damage", "averagedam", a)
+	i = AddButton(i, "Ave Dam (no crits)", "averagedamnocrit", a)
+	i = AddButton(i, "DPS", "dps", a)
+	i = AddButton(i, "With Dot DPS", "withdotdps", a)
+	i = AddButton(i, "DPM", "dpm", a)
+	i = AddButton(i, "Total Damage", "maxoomdamfloored", a)
+	i = AddButton(i, "Total Damage (left)", "maxoomdamremaining", a)
+	i = AddButton(i, "Min Heal", "minheal", a)
+	i = AddButton(i, "Max Heal", "maxheal", a)
+	i = AddButton(i, "Average Heal", "averageheal", a)
+	i = AddButton(i, "Ave Heal (no crits)", "averagehealnocrit", a)
+	i = AddButton(i, "HPS", "hps", a)
+	i = AddButton(i, "With Hot HPS", "withhothps", a)
+	i = AddButton(i, "HPM", "hpm", a)
+	i = AddButton(i, "Total Healing", "maxoomhealfloored", a)
+	i = AddButton(i, "Total Healing (left)", "maxoomhealremaining", a)
+	i = AddButton(i, "Spellcasts remaining", "spellcasts", a)
+end
+
+
+function TheoryCraft_UpdateButtonTextPos(this)
+	TheoryCraft_Settings["buttontextx"] = (this:GetParent():GetLeft()-this:GetLeft())/3
+	TheoryCraft_Settings["buttontexty"] = (this:GetParent():GetTop()-this:GetTop())/3
+	TheoryCraftdummytext:GetParent():ClearAllPoints()
+	TheoryCraftdummytext:GetParent():SetPoint("TOPLEFT", TheoryCraftdummytext:GetParent():GetParent(), "TOPLEFT", -TheoryCraft_Settings["buttontextx"]*3, -TheoryCraft_Settings["buttontexty"]*3)
+	TheoryCraftdummytext:GetParent():SetPoint("BOTTOMRIGHT", TheoryCraftdummytext:GetParent():GetParent(), "BOTTOMRIGHT", -TheoryCraft_Settings["buttontextx"]*3, -TheoryCraft_Settings["buttontexty"]*3)
+end
+
+function TheoryCraft_UpdateDummyButtonText(dontupdate)
+	if not dontupdate then
+		TheoryCraftFontPath:SetText(TheoryCraft_Settings["FontPath"])
+		TheoryCraftColR:SetText(TheoryCraft_Settings["ColR"]*255)
+		TheoryCraftColG:SetText(TheoryCraft_Settings["ColG"]*255)
+		TheoryCraftColB:SetText(TheoryCraft_Settings["ColB"]*255)
+		TheoryCraftColR2:SetText(TheoryCraft_Settings["ColR2"]*255)
+		TheoryCraftColG2:SetText(TheoryCraft_Settings["ColG2"]*255)
+		TheoryCraftColB2:SetText(TheoryCraft_Settings["ColB2"]*255)
+		TheoryCraftFontSize:SetText(TheoryCraft_Settings["FontSize"])
+	end
+
+	TheoryCraftdummytext:GetParent():ClearAllPoints()
+	TheoryCraftdummytext:GetParent():SetPoint("TOPLEFT", TheoryCraftdummytext:GetParent():GetParent(), "TOPLEFT", -TheoryCraft_Settings["buttontextx"]*3, -TheoryCraft_Settings["buttontexty"]*3)
+	TheoryCraftdummytext:GetParent():SetPoint("BOTTOMRIGHT", TheoryCraftdummytext:GetParent():GetParent(), "BOTTOMRIGHT", -TheoryCraft_Settings["buttontextx"]*3, -TheoryCraft_Settings["buttontexty"]*3)
+
+	TheoryCraftdummytext:SetFont(TheoryCraft_Settings["FontPath"], TheoryCraft_Settings["FontSize"]*3, "OUTLINE")
+	TheoryCraftdummytext:SetTextColor(TheoryCraft_Settings["ColR"], TheoryCraft_Settings["ColG"], TheoryCraft_Settings["ColB"])
+	TheoryCraftdummytext:SetJustifyV("MIDDLE")
+	if TheoryCraft_Settings["alignleft"] then
+		TheoryCraftdummytext:SetJustifyH("LEFT")
+	elseif TheoryCraft_Settings["alignright"] then
+		TheoryCraftdummytext:SetJustifyH("RIGHT")
+	else
+		TheoryCraftdummytext:SetJustifyH("CENTER")
+	end
+end
 
 local function formattext(a, field, places)
 	if places == nil then

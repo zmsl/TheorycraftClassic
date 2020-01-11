@@ -149,7 +149,7 @@
 				UIDropDownMenu_Initialize(self, TheoryCraft_InitDropDown)
 			</OnShow>
 			<OnEnter>
-				TheoryCraft_CheckBoxShowDescription()
+				TheoryCraft_CheckBoxShowDescription(self)
 			</OnEnter>
 			<OnLeave>
 				GameTooltip:Hide()
@@ -1057,16 +1057,16 @@
 					<Scripts>
 						<OnLoad>
 							self.textChanged = TheoryCraft_GenBoxEditChange
+							TheoryCraft_UpdateButtonTextPos(self)
 						</OnLoad>
 					</Scripts>
 				</ScrollFrame>
 				<Frame name="TheoryCraftActionButtonBackground" frameStrata="MEDIUM">
+					<Size x="36" y="36"/>
 					<Backdrop bgFile="Interface\Icons\Spell_Frost_IceShard">
-						<TileSize>
-							<AbsValue val="108"/>
-						</TileSize>
+						<TileSize val="36"/>
 					</Backdrop>
-					<Size><AbsDimension x="108" y="108"/></Size>
+					
 					<Anchors>
 						<Anchor point="BOTTOMLEFT">
 							<Offset><AbsDimension x="22" y="172"/></Offset>
@@ -1074,11 +1074,6 @@
 					</Anchors>
 					<Frames>
 						<Frame name="TheoryCraftActionButtonTextPos" frameStrata="MEDIUM" enableMouse="true" movable="true" >
-							<Size><AbsDimension x="108" y="108"/></Size>
-							<Anchors>
-								<Anchor point="TOPLEFT"/>
-								<Anchor point="BOTTOMRIGHT"/>
-							</Anchors>
 							<Scripts>
 								<OnMouseDown>
 									self:StartMoving()
@@ -1088,35 +1083,26 @@
 								</OnDragStart>
 								<OnDragStop>
 									self:StopMovingOrSizing()
-									TheoryCraft_UpdateButtonTextPos()
+									TheoryCraft_UpdateButtonTextPos(self)
 								</OnDragStop>
 								<OnMouseUp>
 									self:StopMovingOrSizing()
-									TheoryCraft_UpdateButtonTextPos()
+									TheoryCraft_UpdateButtonTextPos(self)
 								</OnMouseUp>
 							</Scripts>
 							<Layers>
 								<Layer level="OVERLAY">
-									<FontString name="TheoryCraftdummytext" inherits="TheoryCraftLeftTemplate" text="1000">
-										<Anchors>
-											<Anchor point="TOPLEFT" />
-											<Anchor point="BOTTOMRIGHT" />
-										</Anchors>
+									<FontString SetJustifyV="MIDDLE" name="TheoryCraftdummytext" inherits="TheoryCraftLeftTemplate" text="X">
+									<Anchors>
+										<Anchor point="TOPLEFT">
+											<AbsDimension x="0" y="6"/>
+										</Anchor>
+										<Anchor point="BOTTOMRIGHT"/>
+									</Anchors>
 									</FontString>
+						
 								</Layer>
 							</Layers>
-							<Frames>
-								<CheckButton name="TheoryCraftalignright" inherits="TheoryCraftCBoxTemplate">
-									<Anchors>
-										<Anchor point="RIGHT" relativePoint="RIGHT"/>
-									</Anchors>
-								</CheckButton>
-								<CheckButton name="TheoryCraftalignleft" inherits="TheoryCraftCBoxTemplate">
-									<Anchors>
-										<Anchor point="LEFT" relativePoint="LEFT"/>
-									</Anchors>
-								</CheckButton>
-							</Frames>
 						</Frame>
 					</Frames>
 				</Frame>
@@ -1252,27 +1238,7 @@
 						</Anchor>
 					</Anchors>
 				</Button>
-				<Button name="TheoryCraftGenAll" inherits="TheoryCraftButtonTemplate" text="Time/Generate">
-					<Size>
-						<AbsDimension x="100" y="20"/>
-					</Size>
-					<Anchors>
-						<Anchor point="LEFT" relativeTo="TheoryCraftSetToAll" relativePoint="RIGHT">
-							<Offset>
-								<AbsDimension x="2" y="0"/>
-							</Offset>
-						</Anchor>
-					</Anchors>
-				</Button>
-				<CheckButton name="TheoryCraftframebyframe" inherits="TheoryCraftCBTemplate">
-					<Anchors>
-						<Anchor point="LEFT" relativeTo="TheoryCraftGenAll" relativePoint="RIGHT">
-							<Offset>
-								<AbsDimension x="2" y="0"/>
-							</Offset>
-						</Anchor>
-					</Anchors>
-				</CheckButton>
+			
 				</Frames>
 			</Frame>
 			<Frame name="TheoryCraftOutfitTab" parent="TheoryCraft" hidden="true">
