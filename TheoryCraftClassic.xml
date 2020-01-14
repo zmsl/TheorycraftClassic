@@ -1809,11 +1809,18 @@
 			<AbsDimension x="0" y="0"/>
 		</Size>
 		<Scripts>
+			<OnLoad>
+
+			</OnLoad>
 			<OnUpdate>
 				if not TheoryCraft_Data.TalentsHaveBeenRead then
 					TheoryCraft_UpdateTalents()
+					print("Update Talents")
 				end
-				TheoryCraft_UpdatedThisRound = nil
+				if TheoryCraft_Data.TalentsHaveBeenRead then
+					TheoryCraft_UpdateAllButtonText()
+					self:SetScript("OnUpdate", nil)
+				end
 			</OnUpdate>
 		</Scripts>
 	</Frame>

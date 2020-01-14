@@ -40,6 +40,7 @@ end
 
 function TheoryCraft_getMinMax(spelldata, returndata, frame)
 	if returndata["description"] == nil then return end
+	if returndata["description"] == "" then return end
 
 	local description = returndata["description"]
 	local baseincrease = returndata["baseincrease"]
@@ -428,7 +429,7 @@ function TheoryCraft_getMinMax(spelldata, returndata, frame)
 		minDamage = minDamage*baseincrease + plusdam
 		maxDamage = maxDamage*baseincrease + plusdam
 		
-		local minHeal = (tonumber(string.sub(description, string.find(description, "%d+"..to.."%d+"))) or 0)+lengthofdamagetext
+		local minHeal = (tonumber(string.sub(description or "", string.find(description or "", "%d+"..to.."%d+") or 0)) or 0)+lengthofdamagetext
 		minHeal = tonumber(findpattern(minHeal, "%d+"..to.."%d+")) or 0
 		local maxHeal = tonumber(findpattern(minHeal, to.."%d+")) or 0
 		minHeal = tonumber(findpattern(minHeal, "%d+")) or 0

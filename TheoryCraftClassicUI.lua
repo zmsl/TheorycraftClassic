@@ -12,25 +12,27 @@ local function findpattern(text, pattern, start)
 	end
 end
 
-TheoryCraft_SetUpButton = function (parentname, type, specialid)
+function TheoryCraft_SetUpButton(parentname, type, specialid)
 	oldbutton = getglobal(parentname)
 
-	if not oldbutton then return end
-	newbutton = getglobal(parentname.."_TCText")
-	if newbutton then 
-		return
-	end
-	oldbutton:CreateFontString(parentname.."_TCText", "ARTWORK");
+	if not oldbutton then return nil end
 
+	newbutton = getglobal(parentname.."_TCText")
+	if newbutton and newbutton.type then 
+		return newbutton
+	end
+
+	oldbutton:CreateFontString(parentname.."_TCText", "ARTWORK");
 	newbutton = getglobal(parentname.."_TCText")
 	newbutton:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
 	newbutton:SetPoint("TOPLEFT", oldbutton, "TOPLEFT", 0, 0)
 	newbutton:SetPoint("BOTTOMRIGHT", oldbutton, "BOTTOMRIGHT", 0, 0)
 	newbutton.type = type
 	newbutton.specialid = specialid
+	newbutton:SetText("0")
 	newbutton:Show()
-	-- TheoryCraft_ButtonUpdate(oldbutton) 
-	--print("SHOWING")
+
+	return newbutton
 end
 
 local function round(arg1, decplaces)
@@ -448,7 +450,6 @@ function TheoryCraft_AddButtonText(...)
 	end
 
 	if ActionButton1 then
-
 		for i = 1,12 do setupbutton("ActionButton"..i, "Flippable") end
 		for i = 1,12 do setupbutton("MultiBarRightButton"..i, "Special", 24+i) end
 		for i = 1,12 do setupbutton("MultiBarLeftButton"..i, "Special", 36+i) end
@@ -459,6 +460,9 @@ function TheoryCraft_AddButtonText(...)
 end
 
 function TheoryCraft_UpdateAllButtonText(...)
+	if not TheoryCraft_Data.TalentsHaveBeenRead then
+		return
+	end
 	local newbutton, oldbutton
 	local updatebutton = function(name)
 		local button = getglobal(name)
@@ -472,7 +476,6 @@ function TheoryCraft_UpdateAllButtonText(...)
 	end
 
 	if ActionButton1 then
-
 		for i = 1,12 do updatebutton("ActionButton"..i, "Flippable") end
 		for i = 1,12 do updatebutton("MultiBarRightButton"..i, "Special", 24+i) end
 		for i = 1,12 do updatebutton("MultiBarLeftButton"..i, "Special", 36+i) end
@@ -480,36 +483,41 @@ function TheoryCraft_UpdateAllButtonText(...)
 		for i = 1,12 do updatebutton("MultiBarBottomLeftButton"..i, "Special", 60+i) end
 		for i = 1,12 do updatebutton("BonusActionButton"..i, "Bonus") end
 	end
+
+	if _G['Bartender4'] ~= nil then
+		for i = 1,120 do updatebutton("BT4Button"..i, "Normal") end
+	end
 end
 
 
 hooksecurefunc("ChangeActionBarPage", function(i)
-	if not TheoryCraft_Data.TalentsHaveBeenRead then
-		return
-	end
 	CURRENT_ACTIONBAR_PAGE = i
 	TheoryCraft_UpdateAllButtonText()
 end)
 
 hooksecurefunc("ActionButton_Update", function(button)
-	if not TheoryCraft_Data.TalentsHaveBeenRead then
-		return
-	end
 	TheoryCraft_ButtonUpdate(button)
 end)
 
 hooksecurefunc("SpellBookFrame_UpdateSpells", function(i)
-	if not TheoryCraft_Data.TalentsHaveBeenRead then
-		return
-	end
 	TheoryCraft_UpdateAllButtonText()
 end)
 
 function TheoryCraft_ButtonUpdate(this, ...)
-
+	if not TheoryCraft_Data.TalentsHaveBeenRead then
+		return
+	end
 	local i = this:GetName().."_TCText"
 
 	local buttontext = getglobal(i)
+	if not buttontext then 
+		return
+	end
+
+	if not buttontext then return end
+
+	
+
 	if (buttontext.fontsize ~= TheoryCraft_Settings["FontSize"]) or
 	   (buttontext.fontpath ~= TheoryCraft_Settings["FontPath"]) then
 		buttontext.fontsize = TheoryCraft_Settings["FontSize"]
@@ -528,7 +536,6 @@ function TheoryCraft_ButtonUpdate(this, ...)
 		buttontext.colr2 = TheoryCraft_Settings["ColR2"]
 		buttontext.colg2 = TheoryCraft_Settings["ColG2"]
 		buttontext.colb2 = TheoryCraft_Settings["ColB2"]
-		TheoryCraft_UpdatedButtons[i] = nil
 	end
 	if (buttontext.buttontextx ~= TheoryCraft_Settings["buttontextx"]) or (buttontext.buttontexty ~= TheoryCraft_Settings["buttontexty"]) then
 		buttontext.buttontextx = TheoryCraft_Settings["buttontextx"]
@@ -554,13 +561,12 @@ function TheoryCraft_ButtonUpdate(this, ...)
 		end
 	end
 
-	TheoryCraft_UpdatedThisRound = true
-	TheoryCraft_UpdatedButtons[i] = true
 	if not TheoryCraft_Settings["buttontext"] then
 		buttontext:Hide()
 		return
 	end
-		
+	-- Try to find the spell data lookup by the spell we have on the button
+
 	local tryfirst, trysecond, spelldata
 	if buttontext.type == "SpellBook" then
 		local icon = getglobal(this:GetName().."SpellName")
@@ -575,37 +581,11 @@ function TheoryCraft_ButtonUpdate(this, ...)
 			if id2 == nil then id2 = 0 end
 			spelldata = TheoryCraft_GetSpellDataByName(id, id2)
 		end
-	elseif buttontext.type == "Normal" then
-		TCTooltip:SetOwner(UIParent,"ANCHOR_NONE")
-		TCTooltip:SetAction(buttontext:GetParent():GetID())
-		spelldata = TheoryCraft_GetSpellDataByAction(this)
-	elseif buttontext.type == "Flippable" then
-		TCTooltip:SetOwner(UIParent,"ANCHOR_NONE")
-		TCTooltip:SetAction(buttontext:GetParent():GetID()+(GetActionBarPage()-1)*NUM_ACTIONBAR_BUTTONS)
-		spelldata = TheoryCraft_GetSpellDataByAction(this)
-	elseif buttontext.type == "Special" then
-		TCTooltip:SetOwner(UIParent,"ANCHOR_NONE")
-		TCTooltip:SetAction(buttontext.specialid)
-		spelldata = TheoryCraft_GetSpellDataByAction(this)
-	elseif buttontext.type == "Discord" then
-		TCTooltip:SetOwner(UIParent,"ANCHOR_NONE")
-		TCTooltip:SetAction(buttontext.actionbutton)
-		spelldata = TheoryCraft_GetSpellDataByAction(this)
-	elseif buttontext.type == "Gypsy" then
-		TCTooltip:SetOwner(UIParent,"ANCHOR_NONE")
-		TCTooltip:SetAction(Gypsy_ActionButton_GetPagedID (this))
-		spelldata = TheoryCraft_GetSpellDataByAction(this)
-	elseif buttontext.type == "Bonus" then
-		TCTooltip:SetOwner(UIParent,"ANCHOR_NONE")
-		if ( GetActionBarPage()==1 ) then
-			TCTooltip:SetAction(this:GetID() + ((NUM_ACTIONBAR_PAGES+GetBonusBarOffset()-1)*NUM_ACTIONBAR_BUTTONS))
-			spelldata = TheoryCraft_GetSpellDataByAction(this)
-		else
-			TCTooltip:SetAction(this:GetID() + ((GetActionBarPage()-1)*NUM_ACTIONBAR_BUTTONS))
-			spelldata = TheoryCraft_GetSpellDataByAction(this)
-		end
+	else
+		local action = this:GetAttribute('action') or this.action
+		spelldata = TheoryCraft_GetSpellDataByAction(action)
 	end
-	
+	-- Must contain some properties to be valid
 	if spelldata then
 		tryfirst = formattext(spelldata, TheoryCraft_Settings["tryfirst"], TheoryCraft_Settings["tryfirstsfg"])
 		if tryfirst then

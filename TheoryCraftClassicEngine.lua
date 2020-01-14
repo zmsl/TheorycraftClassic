@@ -698,10 +698,10 @@ end
 
 local function GenerateTooltip(frame, returndata, spelldata, spellrank)
 	returndata["RangedAPMult"] = 2.8
-	if (frame == nil) or (frame:NumLines() == 0) then
+	--[[if (frame == nil) or (frame:NumLines() == 0) then
 		CleanUp(spelldata, returndata)
 		return
-	end
+	end]]--
 	if spelldata.evocation then
 		CleanUp(spelldata, returndata)
 		returndata["evocation"] = TheoryCraft_GetStat("maxtotalmana")-TheoryCraft_GetStat("totalmana")-1100
@@ -758,12 +758,30 @@ local function GenerateTooltip(frame, returndata, spelldata, spellrank)
 	if (spelldata.isranged) or ((class == "HUNTER") and (spelldata.ismelee == nil)) then
 		returndata["critchance"] = TheoryCraft_Data.Stats["rangedcritchance"]
 	end
-	returndata["description"] = getglobal(frame:GetName().."TextLeft"..frame:NumLines()):GetText()
-	returndata["casttime"] = getcasttime(frame)+(returndata["casttime"] or 0)
-	returndata["manacost"] = getmanacost(frame)
-	if not (spelldata.shoot or spelldata.ismelee or spelldata.isranged) then
-		returndata["basemanacost"] = returndata["manacost"]
+	returndata["description"] = returndata["basedescription"] or "" --getglobal(frame:GetName().."TextLeft"..frame:NumLines()):GetText()
+	returndata["casttime"] = (tonumber(returndata["basecasttime"]) or 0)  --getcasttime(frame)+(returndata["casttime"] or 0)
+
+	-- returndata["manacost"] = 0--getmanacost(frame)
+	
+	local spellCosts = GetSpellPowerCost(returndata["spellnumber"])
+	-- print(dump(spellCosts))
+	-- returndata["manacost"] = 0
+	if spellCosts ~= nil then
+		for k, v in pairs(spellCosts) do
+			if v.name == "MANA" then
+				returndata["manacost"] = v.cost
+				break
+			end
+		end
 	end
+
+	if not returndata["manacost"] then returndata["manacost"] = 0 end
+
+	-- print(returndata["manacost"])
+
+	--if not (spelldata.shoot or spelldata.ismelee or spelldata.isranged) then
+	returndata["basemanacost"] = returndata["manacost"]
+	--end
 	if returndata["casttime"] < 1.5 then
 		returndata["casttime"] = 1.5
 	end
@@ -1306,6 +1324,172 @@ local function GenerateTooltip(frame, returndata, spelldata, spellrank)
 	return
 end
 
+function TheoryCraft_GenerateSpellData(spellId)
+
+	if spellId == nil then return end
+
+	TheoryCraft_TooltipData[spellId] = {}
+
+
+	local spellName, _, _, castTime, minRange, maxRange = GetSpellInfo( spellId );
+	local spellDescription = GetSpellDescription(spellId);
+	local spellRank = GetSpellRankById(spellId);
+	local cooldownMS, gcdMS = GetSpellBaseCooldown(spellId);
+	
+	local spellData = nil
+	for k, v in pairs(TheoryCraft_Spells[class]) do
+		if v.name == spellName then
+			spellData = v
+			break
+		end
+	end
+
+	if not spellData then return nil end
+
+
+	olddesc = spellDescription
+
+	-- Start unoptimized
+	SummateData(spellData.id, spellData.Schools)
+	
+	--[[descriptionLine = getglobal(GameTooltip:GetName().."TextLeft"..GameTooltip:NumLines());
+	if (descriptionLine)
+	then
+		olddesc = descriptionLine:GetText()
+		print(olddesc)
+	else
+		print(GameTooltip:NumLines())
+		olddesc = ""
+	end]]--
+
+
+
+
+	-- Copies SummateData into the tooltipdata
+	TheoryCraft_CopyTable(summeddata, TheoryCraft_TooltipData[spellId])
+
+	if TheoryCraft_TooltipData[spellId]["schools"] == nil then
+		TheoryCraft_TooltipData[spellId]["schools"] = {}
+	end
+
+	TheoryCraft_CopyTable(spellData.Schools, TheoryCraft_TooltipData[spellId]["schools"])
+
+	TheoryCraft_TooltipData[spellId]["basedescription"] = olddesc
+
+
+	-- Figure out Macro support
+	--if macro then
+		--TheoryCraft_TooltipData[oldspellname.."MACRO("..spellrank..")"] = olddesc
+	--end
+	-- TheoryCraft_TooltipData[spellname.."("..spellrank..")"] = olddesc
+	
+	--[[if (spellData.shoot) or (spellData.ismelee) or (spellData.isranged) then
+		if getglobal(GameTooltip:GetName().."TextLeft2") then
+			TheoryCraft_TooltipData[spellId]["wandlineleft2"] = getglobal(GameTooltip:GetName().."TextLeft2"):GetText()
+			-- print(TheoryCraft_TooltipData[spellId]["wandlineleft2"]) -- 30 yd
+		end
+		if getglobal(GameTooltip:GetName().."TextRight2") and getglobal(GameTooltip:GetName().."TextRight2"):IsVisible() then
+			TheoryCraft_TooltipData[spellId]["wandlineright2"] = getglobal(GameTooltip:GetName().."TextRight2"):GetText()
+			print(TheoryCraft_TooltipData[spellId]["wandlineright2"])
+		end
+		if getglobal(GameTooltip:GetName().."TextLeft3") and getglobal(GameTooltip:GetName().."TextLeft3"):IsVisible() then
+			TheoryCraft_TooltipData[spellId]["wandlineleft3"] = getglobal(GameTooltip:GetName().."TextLeft3"):GetText()
+			print(TheoryCraft_TooltipData[spellId]["wandlineleft3"])
+		end
+		if getglobal(GameTooltip:GetName().."TextRight3") and getglobal(GameTooltip:GetName().."TextRight3"):IsVisible() then
+			TheoryCraft_TooltipData[spellId]["wandlineright3"] = getglobal(GameTooltip:GetName().."TextRight3"):GetText()
+			print(TheoryCraft_TooltipData[spellId]["wandlineright3"])
+		end
+		if getglobal(GameTooltip:GetName().."TextLeft4") then
+			if getglobal(GameTooltip:GetName().."TextLeft4"):GetText() ~= olddesc then
+				TheoryCraft_TooltipData[spellId]["wandlineleft4"] = getglobal(GameTooltip:GetName().."TextLeft4"):GetText()
+				print(TheoryCraft_TooltipData[spellId]["wandlineleft4"])
+			end
+		end
+	else]]--
+		--[[if getglobal(GameTooltip:GetName().."TextLeft3") then
+			if (getglobal(GameTooltip:GetName().."TextLeft3"):GetText()) then
+				if (getglobal(GameTooltip:GetName().."TextLeft3"):GetText() ~= olddesc) and (strfind(getglobal(GameTooltip:GetName().."TextLeft3"):GetText(), (TheoryCraft_Locale.CooldownRem) or "Cooldown remaining: ") == nil) then
+					TheoryCraft_TooltipData[spellId]["basecasttime"] = getglobal(GameTooltip:GetName().."TextLeft3"):GetText()
+					print(TheoryCraft_TooltipData[spellId]["basecasttime"])
+				end
+			end
+		end ]]--
+
+		TheoryCraft_TooltipData[spellId]["basecasttime"] = (castTime / 1000).." sec cast" -- 3 sec, Instance Cast vs 3000, 0
+		if ((castTime / 1000) == 0) then
+			TheoryCraft_TooltipData[spellId]["basecasttime"] = "Instant cast"
+		end
+		--print(castTime)
+		--print(tonumber(TheoryCraft_TooltipData[spellId]["basecasttime"]))
+		--[[ if getglobal(GameTooltip:GetName().."TextRight2") and getglobal(GameTooltip:GetName().."TextRight2"):IsVisible() then
+			TheoryCraft_TooltipData[spellId]["spellrange"] = getglobal(GameTooltip:GetName().."TextRight2"):GetText()
+			print(TheoryCraft_TooltipData[spellId]["spellrange"])
+		end ]]--
+
+		if (maxRange > 0) then 
+			TheoryCraft_TooltipData[spellId]["spellrange"] = ""..maxRange.." yd range" -- 40 Yard Range vs 40 
+		else
+			TheoryCraft_TooltipData[spellId]["spellrange"] = ""
+		end
+		-- print(TheoryCraft_TooltipData[spellId]["spellrange"]) 
+
+
+		--[[if getglobal(GameTooltip:GetName().."TextRight3") and getglobal(GameTooltip:GetName().."TextRight3"):IsVisible() then
+			TheoryCraft_TooltipData[spellId]["cooldown"] = getglobal(GameTooltip:GetName().."TextRight3"):GetText()
+			print(TheoryCraft_TooltipData[spellId]["cooldown"] )
+			if (spellData.overcooldown) and (TheoryCraft_TooltipData[spellId]["averagedam"]) then
+				if (strfind(TheoryCraft_TooltipData[spellId]["cooldown"], "%d+.%d+"..TheoryCraft_Locale.Cooldown)) then
+					TheoryCraft_TooltipData[spellId]["dps"] = TheoryCraft_TooltipData[spellId]["averagedam"]/tonumber(findpattern(TheoryCraft_TooltipData[spellId]["cooldown"], "%d+.%d+"))
+					print(TheoryCraft_TooltipData[spellId]["dps"])
+				elseif (strfind(TheoryCraft_TooltipData[spellId]["cooldown"], "%d+"..TheoryCraft_Locale.Cooldown)) then
+					TheoryCraft_TooltipData[spellId]["dps"] = TheoryCraft_TooltipData[spellId]["averagedam"]/tonumber(findpattern(TheoryCraft_TooltipData[spellId]["cooldown"], "%d+"))
+					print(TheoryCraft_TooltipData[spellId]["dps"])
+				end
+			end
+		end]]--
+		if cooldownMS > 0 then
+			-- Need time units here, need to read talented information here?
+			TheoryCraft_TooltipData[spellId]["cooldown"] = (cooldownMS / 1000).." sec cooldown"
+		else
+			TheoryCraft_TooltipData[spellId]["cooldown"] = ""
+		end
+
+	-- end
+
+	-- End unoptmized code
+
+	TheoryCraft_TooltipData[spellId]["spellname"] = spellName
+	TheoryCraft_TooltipData[spellId]["spellrank"] = spellRank
+	TheoryCraft_TooltipData[spellId]["spellnumber"] = spellId
+	TheoryCraft_TooltipData[spellId]["dontdpsafterresists"] = spellData.dontdpsafterresists
+	TheoryCraft_TooltipData[spellId]["isheal"] = spellData.isheal
+	TheoryCraft_TooltipData[spellId]["iscombo"] = spellData.iscombo
+	TheoryCraft_TooltipData[spellId]["cancrit"] = spellData.cancrit
+	TheoryCraft_TooltipData[spellId]["shoot"] = spellData.shoot
+	TheoryCraft_TooltipData[spellId]["ismelee"] = spellData.ismelee
+	TheoryCraft_TooltipData[spellId]["isranged"] = spellData.isranged
+	TheoryCraft_TooltipData[spellId]["autoshot"] = spellData.autoshot
+	TheoryCraft_TooltipData[spellId]["armor"] = spellData.armor
+	TheoryCraft_TooltipData[spellId]["binary"] = spellData.binary
+	TheoryCraft_TooltipData[spellId]["dodps"] = spellData.dodps
+	TheoryCraft_TooltipData[spellId]["isseal"] = spellData.isseal
+	TheoryCraft_TooltipData[spellId]["drain"] = spellData.drain
+	TheoryCraft_TooltipData[spellId]["holynova"] = spellData.holynova
+	TheoryCraft_TooltipData[spellId]["dontdomax"] = spellData.dontdomax
+	TheoryCraft_TooltipData[spellId]["overcd"] = spellData.overcooldown
+
+	if (TheoryCraft_Settings["GenerateList"] == "") or (string.find(TheoryCraft_Settings["GenerateList"], string.gsub(spellName, "-", "%%-").."%("..spellRank.."%)")) then
+		TheoryCraft_TooltipData[spellId]["showonbutton"] = true
+	end
+
+	GenerateTooltip(nil, TheoryCraft_TooltipData[spellId], spellData, spellRank)
+
+
+	return TheoryCraft_TooltipData[spellId];
+end
+
+
 function TheoryCraft_GenerateTooltip(frame, spellname, spellrank, i2, showonbutton, macro, force)
 	local timer = GetTime()
 	local oldspellname = spellname
@@ -1515,7 +1699,7 @@ function TheoryCraft_GenerateTooltip(frame, spellname, spellrank, i2, showonbutt
 end
 
 local data2 = {}
-
+-- need to look at these
 local function UpdateTarget(data)
 	if data == nil then return end
 	data["resistscore"] = 0
@@ -1775,65 +1959,62 @@ end
 
 
 
-function TheoryCraft_GetSpellDataByAction(frame)
-	if frame == nil then return nil end
-	local action = frame.action
+function TheoryCraft_GetSpellDataByAction(action)
+	if action == nil then return nil end
 	local type, id = GetActionInfo(action);
-
 	if (type ~= "spell") then return nil end
+	local spellData = TheoryCraft_GenerateSpellData(id);
+	return UpdateTarget(spellData) or spellData
+end
 
-	local desc = GetSpellDescription(id);
+function TheoryCraft_GetSpellDataByName(name, rank)
+	if rank == nil or rank == 0 then rank = "" else rank = "Rank "..rank end
+	local name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(name, rank)
+	if spellId == nil then return nil end
+	local spellData = TheoryCraft_GenerateSpellData(spellId);
+	return UpdateTarget(spellData) or spellData
+end
 
-	if TheoryCraft_TooltipData[desc] and TheoryCraft_TooltipData[desc].spellname then
-		return UpdateTarget(TheoryCraft_TooltipData[desc]) or TheoryCraft_TooltipData[desc]
+function dump(o)
+	if type(o) == 'table' then
+	   local s = '{ '
+	   for k,v in pairs(o) do
+		  if type(k) ~= 'number' then k = '"'..k..'"' end
+		  s = s .. '['..k..'] = ' .. dump(v) .. ','
+	   end
+	   return s .. '} '
+	else
+	   return tostring(o)
 	end
-	
-	TheoryCraft_GenerateTooltip(TCTooltip, nil, nil, nil, true, nil, force)
-	return UpdateTarget(TheoryCraft_TooltipData[desc]) or TheoryCraft_TooltipData[desc]
+end
+
+function GetSpellRankById(spellId)
+    if spellId == nil then return nil end
+    local spellSubtext = GetSpellSubtext(spellId)
+    if spellSubtext == nil then return nil end
+    rank = string.match(spellSubtext, "%d+")
+    return rank
 end
 
 function TheoryCraft_GetSpellDataByFrame(frame, force)
-	if frame == nil then return nil end
-	
-	if frame:NumLines() == 0 then return nil end
-	local name = frame:GetName().."TextLeft"..frame:NumLines()
-	if getglobal(name) == nil then return nil end
-	local desc = getglobal(frame:GetName().."TextLeft"..frame:NumLines()):GetText()
-	if (frame:NumLines() == 1) and (desc ~= "Attack") then
-		local pos = strfind(desc, "%(%d+%)")
-		if not pos then return nil end
-		print(string.sub(desc, 1, pos-1))
-		local data = TheoryCraft_GetSpellDataByName(string.sub(desc, 1, pos-1), tonumber(string.sub(desc, pos+1, string.len(desc)-1)), force, true)
-		if data == nil then return nil end
-		if data.spellnumber == nil then return nil end
 
-		frame:SetSpellBookItem(data.spellnumber,BOOKTYPE_SPELL)
-		return data
-	end
-	
-	if TheoryCraft_TooltipData[desc] and TheoryCraft_TooltipData[desc].spellname then
-		return UpdateTarget(TheoryCraft_TooltipData[desc]) or TheoryCraft_TooltipData[desc]
-	end
-	
-	TheoryCraft_GenerateTooltip(frame, nil, nil, nil, true, nil, force)
-	return UpdateTarget(TheoryCraft_TooltipData[desc]) or TheoryCraft_TooltipData[desc]
 end
 
-function TheoryCraft_GetSpellDataByName(spellname, spellrank, force, macro)
-	if spellrank == nil then spellrank = 0 end
-	local description = TheoryCraft_TooltipData[spellname.."("..spellrank..")"] or (macro and TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"])
-	if (description) then
-		if TheoryCraft_TooltipData[description] and TheoryCraft_TooltipData[description].spellname then
-			return UpdateTarget(TheoryCraft_TooltipData[description]) or TheoryCraft_TooltipData[description]
-		end
-	end
-	TheoryCraft_GenerateTooltip(nil, spellname, spellrank, nil, true, macro)
-	if TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."("..spellrank..")"]] and TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."("..spellrank..")"]].spellname then
-		return UpdateTarget(TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."("..spellrank..")"]]) or TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."("..spellrank..")"]]
-	elseif TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"]] and TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"]].spellname then
-		return UpdateTarget(TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"]]) or TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"]]
-	end
-end
+--function TheoryCraft_GetSpellDataByName(spellname, spellrank, force, macro)
+	--if spellrank == nil then spellrank = 0 end
+	--local description = TheoryCraft_TooltipData[spellname.."("..spellrank..")"] or (macro and TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"])
+	--if (description) then
+--		if TheoryCraft_TooltipData[description] and TheoryCraft_TooltipData[description].spellname then
+			--return UpdateTarget(TheoryCraft_TooltipData[description]) or TheoryCraft_TooltipData[description]
+		--end
+	--end
+	--TheoryCraft_GenerateTooltip(nil, spellname, spellrank, nil, true, macro)
+	--if TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."("..spellrank..")"]] and TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."("..spellrank..")"]].spellname then
+		--return UpdateTarget(TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."("..spellrank..")"]]) or TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."("..spellrank..")"]]
+	--elseif TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"]] and TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"]].spellname then
+		--return UpdateTarget(TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"]]) or TheoryCraft_TooltipData[TheoryCraft_TooltipData[spellname.."MACRO("..spellrank..")"]]
+	--end
+--end
 
 function TheoryCraft_GetSpellDataByDescription(description, force)
 	if TheoryCraft_TooltipData[description] and TheoryCraft_TooltipData[description].spellname then

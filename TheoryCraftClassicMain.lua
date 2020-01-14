@@ -51,6 +51,26 @@ TheoryCraft_Data.Stats = {}
 
 TheoryCraft_UpdatedButtons = {}
 
+-- experimental support for bartender 4
+if Bartender4 and LibStub then 
+	local lib, oldversion = LibStub:NewLibrary("TheoryCraftClassic", 1)
+	local LAB = LibStub("LibActionButton-1.0", true)
+	local CBH = LibStub("CallbackHandler-1.0")
+	if (LAB and CBH) then
+		lib.callbacks = lib.callbacks or CBH:New(lib)
+		LAB.RegisterCallback(lib, "OnButtonUpdate", function(event, self)
+			if self._state_type == "action" then
+				TheoryCraft_ButtonUpdate(self)
+			end
+		end)
+		LAB.RegisterCallback(lib, "OnButtonCreated", function(event, self)
+			TheoryCraft_SetUpButton(self:GetName(), "Normal")
+		end)
+		
+	end
+end
+
+
 function Print(text, begin, spaces)
 	if spaces and string.len(spaces) > 10 then
 		return
@@ -551,6 +571,7 @@ function TheoryCraft_OnEvent(self, event, arg1)
 		--hooking GameTooltip's OnShow
 		TheoryCraft_OnShow_Save = GameTooltip:GetScript("OnShow")
 		GameTooltip:SetScript( "OnShow", TheoryCraft_OnShow )
+		GameTooltip:SetScript( "OnUpdate", TheoryCraft_OnShow ) -- always show?
 
 		if TheoryCraft_Mitigation == nil then
 			TheoryCraft_Mitigation = {}
@@ -608,12 +629,17 @@ function TheoryCraft_OnEvent(self, event, arg1)
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 		self:RegisterEvent("SPELL_UPDATE_ICON")
+				
+		--[[if _G['Bartender4'] ~= nil then
+			for i = 1, 120 do TheoryCraft_SetUpButton("BT4Button"..i, "Normal") end
+		end]]--
+
 		TheoryCraft_UpdateTalents(true)
 		TheoryCraft_UpdateGear("player", true)
 		TheoryCraft_UpdateBuffs("player", true)
 		TheoryCraft_UpdateBuffs("target", true)
 		TheoryCraft_LoadStats()
-		TheoryCraft_GenerateAll()
+		-- TheoryCraft_GenerateAll()
 		TheoryCraft_UpdateAllButtonText()
 	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
 		if TheoryCraft_ParseCombat then
