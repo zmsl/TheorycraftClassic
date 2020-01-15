@@ -697,6 +697,7 @@ local function CleanUp(spelldata, returndata)
 end
 
 local function GenerateTooltip(frame, returndata, spelldata, spellrank)
+	if spellrank == nil then spellrank = 0 end
 	returndata["RangedAPMult"] = 2.8
 	--[[if (frame == nil) or (frame:NumLines() == 0) then
 		CleanUp(spelldata, returndata)
@@ -1072,13 +1073,14 @@ local function GenerateTooltip(frame, returndata, spelldata, spellrank)
 			if (TheoryCraft_Data.Stats["lifetapMana"]) and (TheoryCraft_Data.Stats["lifetapHealth"]) then
 				returndata["lifetapdpm"] = returndata["dpm"]*returndata["manacost"]/(returndata["manacost"]/TheoryCraft_Data.Stats["lifetapMana"]*TheoryCraft_Data.Stats["lifetapHealth"])
 			end
-			if (spelldata.overcooldown) then
+			local cooldown = tonumber(string.match(returndata["cooldown"], "(%d*%.?%d+)"))
+			if (spelldata.overcooldown and cooldown) then
 				if (TheoryCraft_Settings["dontcrit"]) then
-					returndata["dps"] = returndata["averagedamnocrit"]/getcooldown(frame)
+					returndata["dps"] = returndata["averagedamnocrit"]/cooldown
 				else
-					returndata["dps"] = returndata["averagedam"]/getcooldown(frame)
+					returndata["dps"] = returndata["averagedam"]/cooldown
 				end
-				returndata["dpsdam"] = returndata["averagedpsdam"]/getcooldown(frame)
+				returndata["dpsdam"] = returndata["averagedpsdam"]/cooldown
 			else
 				if (TheoryCraft_Settings["dotoverct"]) and (spelldata.isdot) then
 					if (TheoryCraft_Settings["dontcrit"]) then
