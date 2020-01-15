@@ -484,6 +484,27 @@ function TheoryCraft_getMinMax(spelldata, returndata, frame)
 		end
 		if found == nil then return end
 
+		local counter = 0
+		local function replacer()
+			counter = counter + 1
+			return data[counter]
+		end
+
+			
+		for k, type in pairs(found.type) do
+			if type == "bothdamage" then
+				data[k] = round(returndata["mindamage"])
+			elseif type == "dotbothdamage" then
+				data[k] = round(returndata["dotmindamage"])
+			else
+				if tonumber(returndata[type]) then
+					data[k] = round(returndata[type])
+				else
+					data[k] = returndata[type]
+				end
+			end
+		end
+
 		local baseincrease = returndata["baseincrease"]
 		local dotbaseincrease = baseincrease
 		local gearbaseincrease = baseincrease
@@ -491,10 +512,19 @@ function TheoryCraft_getMinMax(spelldata, returndata, frame)
 		if spelldata.talentsbeforegear == nil then
 			gearbaseincrease = gearbaseincrease*returndata["talentbaseincrease"]*returndata["talentbaseincreaseupfront"]
 		end
+		
 		baseincrease = baseincrease*returndata["talentbaseincrease"]
 		dotbaseincrease = dotbaseincrease*returndata["talentbaseincrease"]
 		local plusdam = (returndata["damfinal"] or 0)*gearbaseincrease
 		local plusdam2 = returndata["plusdam2"] or 0
+		
+		-- use this direct calculation for healing spells
+		if (spelldata.isheal) then
+			plusdam = (GetSpellBonusHealing() * spelldata.percent)
+			plusdam2 = 0 -- IDK bout this
+		end
+
+		
 		returndata["backstabmult"] = 1
 
 		returndata["basemindamage"] = returndata["mindamage"]
@@ -526,41 +556,29 @@ function TheoryCraft_getMinMax(spelldata, returndata, frame)
 			end
 		end
 
-		for k, type in pairs(found.type) do
-			if type == "bothdamage" then
-				data[k] = round(returndata["mindamage"])
-			elseif type == "dotbothdamage" then
-				data[k] = round(returndata["dotmindamage"])
-			else
-				if tonumber(returndata[type]) then
-					data[k] = round(returndata[type])
-				else
-					data[k] = returndata[type]
-				end
+
+
+		if (spelldata.isheal) then
+			returndata["minheal"] = returndata["mindamage"]
+			returndata["maxheal"] = returndata["maxdamage"]
+
+			if spelldata.hasdot then
+				returndata["hothps"] = returndata["dotdps"]
+				returndata["hotheal"] = returndata["dotdamage"]
 			end
+			returndata["mindamage"] = nil
+			returndata["maxdamage"] = nil
+			returndata["dotdps"] = nil
+			returndata["dotdamage"] = nil
+		end
+		
+		if (spelldata.drain) then
+			returndata["minheal"] = returndata["mindamage"]+returndata["mindamage"]*returndata["illum"]*baseincrease
+			returndata["maxheal"] = returndata["maxdamage"]+returndata["maxdamage"]*returndata["illum"]*baseincrease
 		end
 
-		local counter = 0
-		local function replacer()
-			counter = counter + 1
-			return data[counter]
-		end
 		returndata["description"] = string.gsub(returndata["description"], found.pattern, string.gsub(found.pattern, "(%(.-%))", replacer), 1)
+
 	end
-	if (spelldata.isheal) then
-		returndata["minheal"] = returndata["mindamage"]
-		returndata["maxheal"] = returndata["maxdamage"]
-		if spelldata.hasdot then
-			returndata["hothps"] = returndata["dotdps"]
-			returndata["hotheal"] = returndata["dotdamage"]
-		end
-		returndata["mindamage"] = nil
-		returndata["maxdamage"] = nil
-		returndata["dotdps"] = nil
-		returndata["dotdamage"] = nil
-	end
-	if (spelldata.drain) then
-		returndata["minheal"] = returndata["mindamage"]+returndata["mindamage"]*returndata["illum"]*baseincrease
-		returndata["maxheal"] = returndata["maxdamage"]+returndata["maxdamage"]*returndata["illum"]*baseincrease
-	end
+
 end

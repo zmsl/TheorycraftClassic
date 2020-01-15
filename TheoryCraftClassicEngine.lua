@@ -802,7 +802,7 @@ local function GenerateTooltip(frame, returndata, spelldata, spellrank)
 	local levelpercent = 1
 	returndata["manamultiplier"] = spelldata.manamultiplier
 	if (spelldata["level"..spellrank]) then spelllevel = spelldata["level"..spellrank] end
-	if (spelldata["level"..spellrank.."per"]) then levelpercent = spelldata["level"..spellrank.."per"] end
+	if (spelldata["level"..spellrank.."per"]) then levelpercent = spelldata["level"..spellrank.."per"];  end
 	if (spelldata["level"..spellrank.."manamult"]) then returndata["manamultiplier"] = spelldata["level"..spellrank.."manamult"] end
 	if (spelldata["level"..spellrank.."ct"]) then 
 		returndata["casttime"] = spelldata["level"..spellrank.."ct"]
@@ -810,7 +810,11 @@ local function GenerateTooltip(frame, returndata, spelldata, spellrank)
 	end
 	if (spelllevel < 20) then
 		levelpercent = levelpercent*(0.0375*spelllevel+0.25)
+		-- should be apart of return data?
+		spelldata.percent = levelpercent
 	end
+
+
 
 	returndata["dotduration"] = TheoryCraft_getDotDuration(returndata["description"])
 	returndata["basedotduration"] = spelldata.basedotduration
