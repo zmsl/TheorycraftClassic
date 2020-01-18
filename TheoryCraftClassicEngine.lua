@@ -1968,7 +1968,12 @@ end
 function TheoryCraft_GetSpellDataByAction(action)
 	if action == nil then return nil end
 	local type, id = GetActionInfo(action);
-	if (type ~= "spell") then return nil end
+	if (type == "macro") then
+		id = GetMacroSpell(id)
+	else if (type ~= "spell") then 
+		return nil end
+	end
+	if (id == nil) then return end
 	local spellData = TheoryCraft_GenerateSpellData(id);
 	return UpdateTarget(spellData) or spellData
 end
