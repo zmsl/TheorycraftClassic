@@ -1,5 +1,4 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-	<Script file="gamedata.lua"/>
 	<Script file="spelldata.lua"/>
 	<Script file="localization.de.lua"/>
 	<Script file="localization.fr.lua"/>
@@ -1404,7 +1403,7 @@
 							</Anchors>
 						</FontString>
 <!-- Outfits -->
-						<FontString name="TheoryCraftOutfitTitle" inherits="TheoryCraftTitleTemplate" text="Outfits:">
+						<FontString name="TheoryCraftOutfitTitle" inherits="TheoryCraftTitleTemplate" text="Outfits:" hidden="true">
 							<Anchors>
 								<Anchor point="BOTTOMLEFT" relativeTo="TheoryCraftOutfitTab" relativePoint="BOTTOMLEFT">
 									<Offset>
@@ -1428,7 +1427,7 @@
 					</OnLoad>
 				</Scripts>
 				<Frames>
-					<Frame name="TheoryCraftoutfit" inherits="TheoryCraftDropdownTemplate" enableMouse="true" id="5">
+					<Frame name="TheoryCraftoutfit" inherits="TheoryCraftDropdownTemplate" enableMouse="true" id="5" hidden="true">
 						<Anchors>
 							<Anchor point="BOTTOMLEFT" relativeTo="TheoryCraftOutfitTab" relativePoint="BOTTOMLEFT">
 								<Offset>
@@ -1439,9 +1438,9 @@
 					</Frame>
 					<Button name="TheoryCraftResetButton" inherits="TheoryCraftButtonTemplate" text="Reset">
 						<Anchors>
-							<Anchor point="LEFT" relativeTo="TheoryCraftoutfit" relativePoint="RIGHT">
+							<Anchor point="BOTTOMRIGHT" relativeTo="TheoryCraftOutfitTab" relativePoint="BOTTOMRIGHT">
 								<Offset>
-									<AbsDimension x="28" y="3" /> <!--y="8"-->
+									<AbsDimension x="-30" y="20" />
 								</Offset>
 							</Anchor>
 						</Anchors>
