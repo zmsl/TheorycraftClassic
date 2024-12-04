@@ -1731,7 +1731,7 @@ local function UpdateTarget(data)
 
 	if data.iscombo then
 		if data["description"] == nil then return end
-		local points = GetComboPoints()
+		local points = UnitPower("player", Enum.PowerType.ComboPoints)
 		data["mindamage"] = data["combo"..points.."mindamage"] or 0
 		data["maxdamage"] = data["combo"..points.."maxdamage"] or 0
 		if (data["comboconvert"]) and (points > 0) then

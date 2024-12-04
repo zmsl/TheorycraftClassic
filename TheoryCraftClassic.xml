@@ -1,4 +1,5 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="gamedata.lua"/>
 	<Script file="spelldata.lua"/>
 	<Script file="localization.de.lua"/>
 	<Script file="localization.fr.lua"/>
@@ -15,11 +16,13 @@
 	<Script file="TheoryCraftClassicMessy.lua"/>
 	<Script file="TheoryCraftClassicMitigation.lua"/>
 
-	<EditBox name="TheoryCraft_EditBoxTemplate" autoFocus="false" inherits="InputBoxTemplate" justifyH="CENTER" frameStrata="HIGH" virtual="true">
-		<Size><AbsDimension x="47" y="20"/></Size>
+	<EditBox name="TheoryCraft_EditBoxTemplate" autoFocus="false" inherits="BackdropTemplate, InputBoxTemplate" justifyH="CENTER" frameStrata="HIGH" virtual="true">
+		<Size>
+			<AbsDimension x="47" y="20"/>
+		</Size>
 		<Scripts>
 			<OnLoad>
-				self:SetTextColor(1,1,1)
+				self:SetTextColor(1, 1, 1)
 			</OnLoad>
 			<OnTextChanged>
 				TheoryCraft_UpdateEditBox(self)
@@ -28,7 +31,7 @@
 		<Layers>
 			<Layer level="BACKGROUND">
 				<FontString name="$parentLabel" inherits="GameFontNormalSmall">
-				<Color r="1" g="1" b="1"/>
+					<Color r="1" g="1" b="1"/>
 					<Anchors>
 						<Anchor point="RIGHT" relativePoint="LEFT">
 							<Offset>
@@ -41,91 +44,104 @@
 		</Layers>
 	</EditBox>
 
-	<ScrollFrame name="TheoryCraft_MultiLineEditboxTemplate" inherits="UIPanelScrollFrameTemplate" frameStrata="HIGH" virtual="true">
-		<Size><AbsDimension x="276" y="510"/></Size>
+
+	<ScrollFrame name="TheoryCraft_MultiLineEditboxTemplate" inherits="BackdropTemplate, UIPanelScrollFrameTemplate" frameStrata="HIGH" virtual="true">
+		<Size>
+			<AbsDimension x="276" y="510"/>
+		</Size>
 		<Frames>
-			<Frame name="$parent_Background" frameStrata="MEDIUM">
-				<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
-					<EdgeSize>
-						<AbsValue val="16"/>
-					</EdgeSize>
-					<TileSize>
-						<AbsValue val="16"/>
-					</TileSize>
-					<BackgroundInsets>
-						<AbsInset left="5" right="5" top="5" bottom="5"/>
-					</BackgroundInsets>
-				</Backdrop>
-				<Size><AbsDimension x="10" y="10"/></Size>
+			<Frame name="$parent_Background" frameStrata="MEDIUM" inherits="BackdropTemplate">
+				<Size>
+					<AbsDimension x="10" y="10"/>
+				</Size>
 				<Anchors>
 					<Anchor point="TOPLEFT">
-						<Offset><AbsDimension x="-7" y="7"/></Offset>
+						<Offset>
+							<AbsDimension x="-7" y="7"/>
+						</Offset>
 					</Anchor>
 					<Anchor point="BOTTOMRIGHT">
-						<Offset><AbsDimension x="28" y="-6"/></Offset>
+						<Offset>
+							<AbsDimension x="28" y="-6"/>
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						self:SetBackdropColor(0, 0, 0);
-						self:SetBackdropBorderColor(0.4, 0.4, 0.4);
+						self:SetBackdrop({
+							bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+							edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+							tile = true,
+							tileSize = 16,
+							edgeSize = 16,
+							insets = { left = 5, right = 5, top = 5, bottom = 5 },
+						})
+						self:SetBackdropColor(0, 0, 0, 1)
+						self:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 					</OnLoad>
 				</Scripts>
 			</Frame>
 			<Button name="$parent_FocusButton" frameStrata="HIGH">
-				<Size><AbsDimension x="337" y="510"/></Size>
+				<Size>
+					<AbsDimension x="337" y="510"/>
+				</Size>
 				<Anchors>
 					<Anchor point="TOPLEFT"/>
 					<Anchor point="BOTTOMRIGHT"/>
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						self:SetFrameLevel(self:GetParent():GetFrameLevel() + 1);
+						self:SetFrameLevel(self:GetParent():GetFrameLevel() + 1)
 					</OnLoad>
 					<OnClick>
-						getglobal(self:GetParent():GetName().."_Text"):SetFocus();
-						self:Hide();
+					print(self.Name)
+						self:GetParent():GetScrollChild():SetFocus()
+						self:Hide()
 					</OnClick>
 				</Scripts>
 			</Button>
 		</Frames>
 		<ScrollChild>
-		<EditBox name="$parent_Text" multiLine="true" letters="50000" autoFocus="false" enableMouse="true" frameStrata="HIGH">
-			<Size><AbsDimension x="276" y="510"/></Size>
-			<Scripts>
-				<OnLoad>
-					self:SetHeight(self:GetParent():GetHeight());
-					self:SetWidth(self:GetParent():GetWidth());
-				</OnLoad>
-				<OnTextChanged>
-					local scrollBar = getglobal(self:GetParent():GetName().."ScrollBar")
-					self:GetParent():UpdateScrollChildRect();
-					local min, max = scrollBar:GetMinMaxValues();
-					if ( max > 0 and (self.max ~= max) ) then
-						self.max = max;
-						scrollBar:SetValue(max);
-					end
-					if (self:GetParent().textChanged) then
-						self:GetParent().textChanged();
-					end
-				</OnTextChanged>
-				<OnEscapePressed>
-					self:ClearFocus();
-					getglobal(self:GetParent():GetName().."_FocusButton"):Show();
-				</OnEscapePressed>
-				<OnHide>
-					getglobal(self:GetParent():GetName().."_FocusButton"):Show();
-				</OnHide>
-			</Scripts>
-			<FontString font="Fonts\ARIALN.TTF">
-				<Color r="1" g="1" b="1"/>
-				<FontHeight>
-					<AbsValue val="12"/>
-				</FontHeight>
-			</FontString>
-		</EditBox>
-	</ScrollChild>
-</ScrollFrame>
+			<EditBox name="$parent_Text" multiLine="true" letters="50000" autoFocus="false" enableMouse="true" frameStrata="HIGH">
+				<Size>
+					<AbsDimension x="276" y="510"/>
+				</Size>
+				<Scripts>
+					<OnLoad>
+						self:SetSize(self:GetParent():GetSize())
+					</OnLoad>
+					<OnTextChanged>
+						local scrollBar = self:GetParent().ScrollBar
+						self:GetParent():UpdateScrollChildRect()
+						local min, max = scrollBar:GetMinMaxValues()
+						if max > 0 and self.max ~= max then
+							self.max = max
+							scrollBar:SetValue(max)
+						end
+						if self:GetParent().textChanged then
+							self:GetParent().textChanged()
+						end
+					</OnTextChanged>
+					<OnEscapePressed>
+						self:ClearFocus()
+						getglobal(self:GetParent():GetName().."_FocusButton"):Show();
+					</OnEscapePressed>
+					<OnHide>
+						getglobal(self:GetParent():GetName().."_FocusButton"):Show();
+					</OnHide>
+				</Scripts>
+				<FontString inherits="GameFontNormal">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<Color r="1" g="1" b="1"/>
+					<FontHeight>
+						<AbsValue val="12"/>
+					</FontHeight>
+				</FontString>
+			</EditBox>
+		</ScrollChild>
+	</ScrollFrame>
 
 	<Frame name="TheoryCraftDropdownTemplate" inherits="UIDropDownMenuTemplate" virtual="true">
 		<Size>
@@ -160,7 +176,6 @@
 	<CheckButton name="TheoryCraftTabTemplate" inherits="CharacterFrameTabButtonTemplate" virtual="true">
 		<Scripts>
 			<OnClick>
-
 				PanelTemplates_Tab_OnClick(self, TheoryCraft)
 				TheoryCraft_TabHandler(self:GetName())
 			</OnClick>
@@ -194,6 +209,7 @@
 			</OnLeave>
 		</Scripts>
 	</CheckButton>
+
 	<CheckButton name="TheoryCraftCBTemplate" inherits="TheoryCraftCheckButtonTemplate" virtual="true" >
 		<Size>
 			<AbsDimension x="20" y="20"/>
@@ -216,6 +232,7 @@
 			</OnLeave>
 		</Scripts>
 	</CheckButton>
+
 	<CheckButton name="TheoryCraftCheckBoxTemplate" inherits="UICheckButtonTemplate" virtual="true">
 		<Scripts>
 			<OnClick>
@@ -240,6 +257,7 @@
 			</OnLeave>
 		</Scripts>
 	</CheckButton>
+
 	<CheckButton name="TheoryCraftCB2Template" inherits="TheoryCraftCheckBoxTemplate" virtual="true" >
 		<HitRectInsets>
 			<AbsInset left="0" right="-70" top="0" bottom="0"/>
@@ -288,7 +306,8 @@
 			</OnLeave>
 		</Scripts>
 	</CheckButton>
-	<Button name="TheoryCraftButtonTemplate" inherits="OptionsButtonTemplate" virtual="true">
+
+	<Button name="TheoryCraftButtonTemplate" inherits="UIPanelButtonTemplate" virtual="true">
 		<Size>
 			<AbsDimension x="73" y="20"/>
 		</Size>
@@ -315,6 +334,7 @@
 			<Color r="0.1" g="0.1" b="0.1"/>
 		</Shadow>
 	</FontString>
+
 	<FontString name="TheoryCraftOutfitLeftTemplate" font="Fonts\FRIZQT__.TTF" justifyH="RIGHT" justifyV="TOP" virtual="true">
 		<FontHeight>
 			<AbsValue val="10"/>
@@ -330,6 +350,7 @@
 			<Color r="0.1" g="0.1" b="0.1"/>
 		</Shadow>
 	</FontString>
+
 	<FontString name="TheoryCraftOutfitRightTemplate" font="Fonts\FRIZQT__.TTF" justifyH="LEFT" justifyV="TOP" virtual="true">
 		<FontHeight>
 			<AbsValue val="10"/>
@@ -361,6 +382,7 @@
 			<Color r="0.1" g="0.1" b="0.1"/>
 		</Shadow>
 	</FontString>
+
 	<FontString name="TheoryCraftRightTemplate" font="Fonts\FRIZQT__.TTF" justifyH="LEFT" justifyV="TOP" virtual="true">
 		<FontHeight>
 			<AbsValue val="10"/>
@@ -392,7 +414,8 @@
 			<Color r="0.1" g="0.1" b="0.1"/>
 		</Shadow>
 	</FontString>
-	<Button name="TheoryCraftTalentTemplate" inherits="OptionsButtonTemplate" font="Fonts\FRIZQT__.TTF" justifyH="MIDDLE" justifyV="TOP" virtual="true">
+
+	<Button name="TheoryCraftTalentTemplate" inherits="UIPanelButtonTemplate" font="Fonts\FRIZQT__.TTF" justifyH="MIDDLE" justifyV="TOP" virtual="true">
 		<FontHeight>
 			<AbsValue val="10.5"/>
 		</FontHeight>
@@ -408,10 +431,11 @@
 		</Shadow>
 		<Scripts>
 			<OnClick> 
-				TheoryCraft_SetTalent()
+				TheoryCraft_SetTalent(self:GetName())
 			</OnClick>
 		</Scripts>
 	</Button>
+
 	<Frame name="TheoryCraft" parent="UIParent" hidden="true" enableMouse="true" movable="true" >
 		<Anchors>
 			<Anchor point="TOP">
@@ -473,18 +497,7 @@
 					</Anchor>
 				</Anchors>
 			</CheckButton>
-			<Frame name="TheoryCraftSettingsTab" parent="TheoryCraft">
-				<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-					<TileSize>
-						<AbsValue val="32"/>
-					</TileSize>
-					<EdgeSize>
-						<AbsValue val="32"/>
-					</EdgeSize>
-					<BackgroundInsets>
-						<AbsInset left="11" right="12" top="12" bottom="11"/>
-					</BackgroundInsets>
-				</Backdrop>
+			<Frame name="TheoryCraftSettingsTab" parent="TheoryCraft" inherits="BackdropTemplate">
 				<Anchors>
 					<Anchor point="TOP">
 						<Offset>
@@ -538,6 +551,18 @@
 						</FontString>
 					</Layer>
 				</Layers>
+				<Scripts>
+					<OnLoad>
+						self:SetBackdrop({
+							bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+							edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+							tile = true,
+							tileSize = 32,
+							edgeSize = 32,
+							insets = { left = 11, right = 12, top = 12, bottom = 11 },
+						})
+					</OnLoad>
+				</Scripts>
 				<Frames>
 				<CheckButton name="TheoryCraftembedstyle1" inherits="TheoryCraftCBTemplate">
 					<Anchors>
@@ -958,18 +983,7 @@
 				</EditBox>
 				</Frames>
 			</Frame>
-			<Frame name="TheoryCraftButtonTextTab" parent="TheoryCraft" hidden="true">
-				<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-					<TileSize>
-						<AbsValue val="32"/>
-					</TileSize>
-					<EdgeSize>
-						<AbsValue val="32"/>
-					</EdgeSize>
-					<BackgroundInsets>
-						<AbsInset left="11" right="12" top="12" bottom="11"/>
-					</BackgroundInsets>
-				</Backdrop>
+			<Frame name="TheoryCraftButtonTextTab" parent="TheoryCraft" inherits="BackdropTemplate" hidden="true">
 				<Anchors>
 					<Anchor point="TOP">
 						<Offset>
@@ -997,6 +1011,18 @@
 						</FontString>
 					</Layer>
 				</Layers>
+				<Scripts>
+					<OnLoad>
+						self:SetBackdrop({
+							bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+							edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+							tile = true,
+							tileSize = 32,
+							edgeSize = 32,
+							insets = { left = 11, right = 12, top = 12, bottom = 11 },
+						})
+					</OnLoad>
+				</Scripts>
 				<Frames>
 				<CheckButton name="TheoryCraftbuttontext" inherits="TheoryCraftCBTemplate">
 					<Anchors>
@@ -1060,17 +1086,21 @@
 						</OnLoad>
 					</Scripts>
 				</ScrollFrame>
-				<Frame name="TheoryCraftActionButtonBackground" frameStrata="MEDIUM">
+				<Frame name="TheoryCraftActionButtonBackground" frameStrata="MEDIUM" inherits="BackdropTemplate">
 					<Size x="36" y="36"/>
-					<Backdrop bgFile="Interface\Icons\Spell_Frost_IceShard">
-						<TileSize val="36"/>
-					</Backdrop>
-					
 					<Anchors>
 						<Anchor point="BOTTOMLEFT">
 							<Offset><AbsDimension x="22" y="172"/></Offset>
 						</Anchor>
 					</Anchors>
+					<Scripts>
+						<OnLoad>
+							self:SetBackdrop({
+								bgFile = "Interface\Icons\Spell_Frost_IceShard",
+								tileSize = 36,
+							})
+						</OnLoad>
+					</Scripts>
 					<Frames>
 						<Frame name="TheoryCraftActionButtonTextPos" frameStrata="MEDIUM" enableMouse="true" movable="true" >
 							<Scripts>
@@ -1091,15 +1121,14 @@
 							</Scripts>
 							<Layers>
 								<Layer level="OVERLAY">
-									<FontString SetJustifyV="MIDDLE" name="TheoryCraftdummytext" inherits="TheoryCraftLeftTemplate" text="X">
-									<Anchors>
-										<Anchor point="TOPLEFT">
-											<AbsDimension x="0" y="6"/>
-										</Anchor>
-										<Anchor point="BOTTOMRIGHT"/>
-									</Anchors>
+									<FontString name="TheoryCraftdummytext" inherits="TheoryCraftLeftTemplate" text="X" justifyV="MIDDLE">
+										<Anchors>
+											<Anchor point="TOPLEFT">
+												<AbsDimension x="0" y="6"/>
+											</Anchor>
+											<Anchor point="BOTTOMRIGHT"/>
+										</Anchors>
 									</FontString>
-						
 								</Layer>
 							</Layers>
 						</Frame>
@@ -1240,18 +1269,7 @@
 			
 				</Frames>
 			</Frame>
-			<Frame name="TheoryCraftOutfitTab" parent="TheoryCraft" hidden="true">
-				<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-					<TileSize>
-						<AbsValue val="32"/>
-					</TileSize>
-					<EdgeSize>
-						<AbsValue val="32"/>
-					</EdgeSize>
-					<BackgroundInsets>
-						<AbsInset left="11" right="12" top="12" bottom="11"/>
-					</BackgroundInsets>
-				</Backdrop>
+			<Frame name="TheoryCraftOutfitTab" parent="TheoryCraft" inherits="BackdropTemplate" hidden="true">
 				<Anchors>
 					<Anchor point="TOP">
 						<Offset>
@@ -1397,6 +1415,18 @@
 						</FontString>
 					</Layer>
 				</Layers>
+				<Scripts>
+					<OnLoad>
+						self:SetBackdrop({
+							bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+							edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+							tile = true,
+							tileSize = 32,
+							edgeSize = 32,
+							insets = { left = 11, right = 12, top = 12, bottom = 11 },
+						})
+					</OnLoad>
+				</Scripts>
 				<Frames>
 					<Frame name="TheoryCraftoutfit" inherits="TheoryCraftDropdownTemplate" enableMouse="true" id="5">
 						<Anchors>
@@ -1648,6 +1678,7 @@
 			</Button>
 		</Frames>
 	</Frame>
+
 	<Frame name="TheoryCraftTitleFrame" parent="TheoryCraft" >
 		<Anchors>
 			<Anchor point="CENTER" relativePoint="TOP">
@@ -1688,7 +1719,8 @@
 			</Layer>
 		</Layers>
 	</Frame>
-	<Frame name="TheoryCraftCustomOutfit" parent="TheoryCraft" hidden="true" enableMouse="true" movable="true" >
+
+	<Frame name="TheoryCraftCustomOutfit" parent="TheoryCraft" inherits="BackdropTemplate" hidden="true" enableMouse="true" movable="true" >
 		<Anchors>
 			<Anchor point="TOPRIGHT" relativeTo="TheoryCraft" relativePoint="TOPLEFT">
 				<Offset>
@@ -1699,17 +1731,6 @@
 		<Size>
 			<AbsDimension x="300" y="300"/>
 		</Size>
-		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-        		<TileSize>
-				<AbsValue val="32"/>
-			</TileSize>
-			<EdgeSize>
-				<AbsValue val="32"/>
-			</EdgeSize>
-			<BackgroundInsets>
-				<AbsInset left="11" right="12" top="12" bottom="11"/>
-			</BackgroundInsets>
-		</Backdrop>
 		<Layers>
 <!-- Custom Form -->
 			<Layer level="OVERLAY">
@@ -1746,6 +1767,18 @@
 				</FontString>
 			</Layer>
 		</Layers>
+		<Scripts>
+			<OnLoad>
+				self:SetBackdrop({
+					bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+					edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+					tile = true,
+					tileSize = 32,
+					edgeSize = 32,
+					insets = { left = 11, right = 12, top = 12, bottom = 11 },
+				})
+			</OnLoad>
+		</Scripts>
 		<Frames>
 			<Button name="TheoryCraftEquipTargetButton" inherits="TheoryCraftButtonTemplate" text="Target" parent="TheoryCraftCustomOutfit">
 				<Anchors>
@@ -1776,6 +1809,7 @@
 			</Button>
 		</Frames>
 	</Frame>
+
 	<GameTooltip name="TheoryCraftTooltip" inherits="GameTooltipTemplate" parent="UIParent" hidden="true">
 		<Scripts>
 			<OnLoad>
@@ -1783,6 +1817,7 @@
 			</OnLoad>	
 		</Scripts>
 	</GameTooltip>
+
 	<GameTooltip name="TCTooltip" inherits="GameTooltipTemplate" parent="UIParent" hidden="true">
 		<Scripts>
 			<OnLoad>
@@ -1790,6 +1825,7 @@
 			</OnLoad>	
 		</Scripts>
 	</GameTooltip>
+
 	<GameTooltip name="TCTooltip2" inherits="GameTooltipTemplate" parent="UIParent" hidden="true">
 		<Scripts>
 			<OnLoad>
@@ -1797,6 +1833,7 @@
 			</OnLoad>	
 		</Scripts>
 	</GameTooltip>
+
 	<Frame name="TheoryCraftUpdater" parent="UIParent">
 		<Anchors>
 			<Anchor point="TOP">
@@ -1823,4 +1860,5 @@
 			</OnUpdate>
 		</Scripts>
 	</Frame>
+	
 </Ui> 

@@ -1,5 +1,5 @@
-## Interface: 11303
-## Author: Xodious (Original Code by Aelian)
+## Interface: 11505
+## Author: zmsl/defzach/sats (Original Code by Aelian, Xodious)
 ## Title: TheoryCraft Classic
 ## Notes: Tells you everything about an ability, right on the tooltip.
 ## Version: 1.17.2020
